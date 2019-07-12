@@ -13,9 +13,12 @@ repositories {
 	mavenCentral()
 	maven { url 'https://repo.spring.io/snapshot' }
 	maven { url 'https://repo.spring.io/milestone' }
+
 }
 
 dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation files('/home/rwinch/code/rwinch/rsocket-security/out/production/classes')
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
 	implementation 'org.springframework.boot:spring-boot-starter-rsocket'
 	implementation 'com.github.ben-manes.caffeine:caffeine'
