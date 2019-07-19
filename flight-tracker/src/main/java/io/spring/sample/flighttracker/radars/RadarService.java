@@ -2,6 +2,7 @@ package io.spring.sample.flighttracker.radars;
 
 import java.util.List;
 
+import org.springframework.util.MimeType;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -44,6 +45,7 @@ public class RadarService {
 	private Flux<AircraftSignal> listenAircraftSignals(Radar radar) {
 		return this.requester.flatMapMany(req ->
 				req.route(String.format("listen.radar.%s", radar.getIata()))
+						.metadata("cm9iOnBhc3N3b3Jk", MimeType.valueOf("x.spring-security/authentication.basic.v0"))
 						.data(Mono.empty())
 						.retrieveFlux(AircraftSignal.class));
 	}
