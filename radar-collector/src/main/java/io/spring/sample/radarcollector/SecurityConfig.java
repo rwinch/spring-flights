@@ -3,8 +3,8 @@ package io.spring.sample.radarcollector;
 import org.springframework.boot.rsocket.server.ServerRSocketFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.rsocket.EnableRSocketSecurity;
-import org.springframework.security.config.rsocket.RSocketSecurity;
+import org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity;
+import org.springframework.security.config.annotation.rsocket.RSocketSecurity;
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -38,7 +38,7 @@ public class SecurityConfig {
 			.authorizePayload(authorize -> {
 				authorize
 					.route("listen.radar.*").authenticated()
-					.anyPayload().permitAll();
+					.anyExchange().permitAll();
 			});
 		return rsocket.build();
 	}
