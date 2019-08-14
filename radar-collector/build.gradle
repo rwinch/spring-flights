@@ -21,6 +21,7 @@ dependencies {
 	implementation files('/home/rwinch/code/rwinch/rsocket-security/out/production/classes')
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
 	implementation 'org.springframework.boot:spring-boot-starter-rsocket'
+	implementation files('/home/rwinch/code/rsocket/rsocket-java/rsocket-core/build/libs/rsocket-core-1.0.0-RC3.jar')
 	implementation 'com.github.ben-manes.caffeine:caffeine'
 	runtimeOnly 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
 	runtimeOnly 'org.springframework.boot:spring-boot-devtools'
