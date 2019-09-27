@@ -18,6 +18,7 @@ import org.springframework.security.rsocket.authentication.AuthenticationPayload
 import org.springframework.security.rsocket.authentication.PayloadExchangeAuthenticationConverter;
 import org.springframework.security.rsocket.core.PayloadSocketAcceptorInterceptor;
 import org.springframework.security.rsocket.metadata.BearerTokenMetadata;
+import org.springframework.security.rsocket.util.matcher.PayloadExchangeAuthorizationContext;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -37,18 +38,21 @@ public class RSocketSecurityConfig {
 			.authorizePayload(authz ->
 				authz
 					.route("fetch.profile.me").authenticated()
-					.route("fetch.profile.{username}").access((a,c) ->
-						a.map(Authentication::getPrincipal)
-							.cast(UserProfile.class)
-							.map(UserProfile::getLogin)
-							.map(currentLogin -> friends.isLoginFriendOf(currentLogin, (String) c.getVariables().get("username")))
-							.map(AuthorizationDecision::new)
-					)
+					.route("fetch.profile.{username}").access((a,c) -> checkFriends(a, c))
 					.anyRequest().authenticated()
 					.anyExchange().permitAll()
 			)
 			.addPayloadInterceptor(jwt);
 		return rsocket.build();
+	}
+
+	private Mono<AuthorizationDecision> checkFriends(Mono<Authentication> a,
+			PayloadExchangeAuthorizationContext c) {
+		return a.map(Authentication::getPrincipal)
+			.cast(UserProfile.class)
+			.map(UserProfile::getLogin)
+			.map(currentLogin -> friends.isLoginFriendOf(currentLogin, (String) c.getVariables().get("username")))
+			.map(AuthorizationDecision::new);
 	}
 
 	@Bean
