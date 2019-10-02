@@ -19,6 +19,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
 	implementation 'org.springframework.boot:spring-boot-starter-rsocket'
 	implementation 'com.github.ben-manes.caffeine:caffeine'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.security:spring-security-rsocket'
 	runtimeOnly 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
 	runtimeOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'io.projectreactor:reactor-tools'
