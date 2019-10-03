@@ -1,5 +1,8 @@
 package io.spring.sample.flighttracker;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.spring.sample.flighttracker.config.JsonMetadataStrategiesCustomizer;
 import io.spring.sample.flighttracker.profile.UserProfile;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +24,8 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,13 +95,25 @@ public class FlightTrackerApplicationTests {
 	static class OAuth2 {
 		final ReactiveClientRegistrationRepository clients;
 
-		public OAuth2(ReactiveClientRegistrationRepository clients) {
+		final ObjectMapper mapper;
+
+		public OAuth2(ReactiveClientRegistrationRepository clients, ObjectMapper mapper) {
 			this.clients = clients;
+			this.mapper = mapper;
 		}
 
 		public Consumer<RSocketRequester.Builder> tokenForLogin(String login) {
-			return builder -> builder.setupMetadata(accessTokenForLogin(login),
-					BearerTokenMetadata.BEARER_AUTHENTICATION_MIME_TYPE);
+			return builder -> builder.setupMetadata(jsonOAuthToken(login),
+					JsonMetadataStrategiesCustomizer.METADATA_MIME_TYPE);
+		}
+
+		private String jsonOAuthToken(String login) {
+			Map<String, String> metadata = Collections.singletonMap(BearerTokenMetadata.BEARER_AUTHENTICATION_MIME_TYPE.toString(), accessTokenForLogin(login));
+			try {
+				return this.mapper.writeValueAsString(metadata);
+			} catch (JsonProcessingException e) {
+				throw new RuntimeException(e);
+			}
 		}
 
 		private String accessTokenForLogin(String login) {
