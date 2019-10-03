@@ -54,8 +54,16 @@ public class FlightTrackerApplicationTests {
 	}
 
 	@Test
-	public void fetchProfileMe() {
-		String login = "rossen";
+	public void fetchProfileMeWhenRossenThenRossen() {
+		fetchProfileAndAssert("rossen");
+	}
+
+	@Test
+	public void fetchProfileMeWhenBrianThenBrian() {
+		fetchProfileAndAssert("brian");
+	}
+
+	private void fetchProfileAndAssert(String login) {
 		Mono<RSocketRequester> requester = this.requesterBuilder
 				.apply(this.oauth2.tokenForLogin(login))
 				.dataMimeType(MediaType.APPLICATION_CBOR)
