@@ -86,6 +86,35 @@ public class FlightTrackerApplicationTests {
 				.verifyComplete();
 	}
 
+	@Test
+	public void brianFetchRossen() {
+		String fetchProfileLogin = "rossen";
+		StepVerifier.create(loginWithToFetchProfileFor("brian", fetchProfileLogin))
+				.assertNext(userProfile -> {
+					assertThat(userProfile.getLogin()).isEqualTo(fetchProfileLogin);
+				})
+				.verifyComplete();
+	}
+
+	@Test
+	public void rossenFetchBrian() {
+		String fetchProfileLogin = "rossen";
+		StepVerifier.create(loginWithToFetchProfileFor("rossen", fetchProfileLogin))
+				.verifyErrorSatisfies(e -> assertThat(e).hasMessageContaining("Denied"));
+	}
+
+	private Mono<UserProfile> loginWithToFetchProfileFor(String loginWith, String fetchProfileLogin) {
+		Mono<RSocketRequester> requester = this.requesterBuilder
+				.apply(this.oauth2.tokenForLogin(loginWith))
+				.dataMimeType(MediaType.APPLICATION_CBOR)
+				.connectWebSocket(this.uri);
+
+		return requester.flatMap(req ->
+				req.route("fetch.profile.{login}", fetchProfileLogin)
+						.retrieveMono(UserProfile.class)
+		);
+	}
+
 	@LocalServerPort
 	public void setPort(int port) {
 		this.uri = URI.create("ws://localhost:" + port + "/rsocket");

@@ -1,9 +1,12 @@
 package io.spring.sample.flighttracker;
 
+import io.spring.sample.flighttracker.profile.UserProfile;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.rsocket.MetadataExtractor;
 import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.rsocket.PayloadInterceptorOrder;
 import org.springframework.security.config.annotation.rsocket.RSocketSecurity;
 import org.springframework.security.core.Authentication;
@@ -25,12 +28,22 @@ import java.util.Map;
  */
 @Configuration
 public class RSocketSecurityConfig {
+	@Autowired
+	Friends friends;
 
 	@Bean
 	PayloadSocketAcceptorInterceptor rsocketSecurity(RSocketSecurity rsocket, AuthenticationPayloadInterceptor jwt) {
 		rsocket
 			.authorizePayload(authz ->
 				authz
+					.route("fetch.profile.me").authenticated()
+					.route("fetch.profile.{username}").access((a,c) ->
+						a.map(Authentication::getPrincipal)
+							.cast(UserProfile.class)
+							.map(UserProfile::getLogin)
+							.map(currentLogin -> friends.isLoginFriendOf(currentLogin, (String) c.getVariables().get("username")))
+							.map(AuthorizationDecision::new)
+					)
 					.anyRequest().authenticated()
 					.anyExchange().permitAll()
 			)
@@ -39,8 +52,10 @@ public class RSocketSecurityConfig {
 	}
 
 	@Bean
-	AuthenticationPayloadInterceptor jwt(ReactiveJwtDecoder decoder, MetadataExtractorBearerTokenConverter bearerTokenConverter) {
+	AuthenticationPayloadInterceptor jwt(ReactiveJwtDecoder decoder, MetadataExtractorBearerTokenConverter bearerTokenConverter,
+			UserProfileAuthenticationConverter converter) {
 		JwtReactiveAuthenticationManager manager = new JwtReactiveAuthenticationManager(decoder);
+		manager.setJwtAuthenticationConverter(converter);
 		AuthenticationPayloadInterceptor result = new AuthenticationPayloadInterceptor(manager);
 		result.setAuthenticationConverter(bearerTokenConverter);
 		result.setOrder(PayloadInterceptorOrder.JWT_AUTHENTICATION.getOrder());
